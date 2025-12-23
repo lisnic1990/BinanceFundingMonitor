@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>BinanceFundingMonitor</id>
+    <version>1.0.0</version>
+    <authors>BinanceFundingMonitor</authors>
+    <description>Package Description</description>
+    <repository type="git" />
+    <dependencies>
+      <group targetFramework="net8.0-windows7.0" />
+    </dependencies>
+    <frameworkReferences>
+      <group targetFramework="net8.0-windows7.0">
+        <frameworkReference name="Microsoft.WindowsDesktop.App.WindowsForms" />
+      </group>
+    </frameworkReferences>
+  </metadata>
+  <files>
+    <file src="D:\Work\MyScharpApps\BinanceFundingMonitor\BinanceFundingMonitor\bin\Debug\net8.0-windows\BinanceFundingMonitor.runtimeconfig.json" target="lib\net8.0-windows7.0\BinanceFundingMonitor.runtimeconfig.json" />
+    <file src="D:\Work\MyScharpApps\BinanceFundingMonitor\BinanceFundingMonitor\bin\Debug\net8.0-windows\BinanceFundingMonitor.dll" target="lib\net8.0-windows7.0\BinanceFundingMonitor.dll" />
+  </files>
+</package>
