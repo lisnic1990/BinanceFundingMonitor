@@ -47,6 +47,15 @@ namespace BinanceFundingMonitor
         {
             _settings = _settingsService.LoadSettings();
 
+            // Загрузка сохраненных тикеров
+            if (_settings.WatchedSymbols != null && _settings.WatchedSymbols.Count > 0)
+            {
+                foreach (var symbol in _settings.WatchedSymbols)
+                {
+                    AddSymbolToMonitoring(symbol);
+                }
+            }
+
             // Применение настроек
             chkTopMost.Checked = _settings.AlwaysOnTop;
             chkPlaySound.Checked = _settings.PlaySoundOnUpdate;
@@ -64,15 +73,6 @@ namespace BinanceFundingMonitor
                     // Если файл не найден, очищаем настройку
                     _settings.CustomSoundPath = null;
                     _settingsService.SaveSettings(_settings);
-                }
-            }
-
-            // Загрузка сохраненных тикеров
-            if (_settings.WatchedSymbols != null && _settings.WatchedSymbols.Count > 0)
-            {
-                foreach (var symbol in _settings.WatchedSymbols)
-                {
-                    AddSymbolToMonitoring(symbol);
                 }
             }
         }
@@ -318,7 +318,7 @@ namespace BinanceFundingMonitor
             {
                 await _monitor.AddSymbolAsync(symbol);
                 txtSymbol.Clear();
-                SaveSettings();
+                // SaveSettings();
                 UpdateStatusLabel();
             }
             catch (Exception ex)
@@ -358,7 +358,7 @@ namespace BinanceFundingMonitor
             {
                 await _monitor.RemoveSymbolAsync(symbol);
                 dgvFundingRates.Rows.Remove(selectedRow);
-                SaveSettings();
+                // SaveSettings();
                 UpdateStatusLabel();
             }
         }
@@ -418,7 +418,7 @@ namespace BinanceFundingMonitor
                             MessageBoxIcon.Information);
 
                         UpdateSoundButtonText();
-                        SaveSettings();
+                        // SaveSettings();
 
                         // Тестовое воспроизведение
                         _soundService.PlayUpdateSound();
@@ -450,7 +450,7 @@ namespace BinanceFundingMonitor
             {
                 _soundService.SetCustomSound(null!);
                 UpdateSoundButtonText();
-                SaveSettings();
+                // SaveSettings();
 
                 MessageBox.Show(
                     "Установлен стандартный звук",
@@ -504,12 +504,12 @@ namespace BinanceFundingMonitor
         private void chkTopMost_CheckedChanged(object? sender, EventArgs e)
         {
             this.TopMost = chkTopMost.Checked;
-            SaveSettings();
+            // SaveSettings();
         }
 
         private void chkPlaySound_CheckedChanged(object? sender, EventArgs e)
         {
-            SaveSettings();
+            // SaveSettings();
         }
 
         private void btnSelectSound_Click(object? sender, EventArgs e)

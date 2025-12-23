@@ -100,7 +100,7 @@ namespace BinanceFundingMonitor.Services
                 else
                 {
                     // Воспроизведение системного beep
-                    System.Console.Beep(800, 100); // Частота 800 Hz, длительность 100 ms
+                    System.Console.Beep(600, 350);
                 }
             }
             catch (Exception ex)
@@ -110,7 +110,7 @@ namespace BinanceFundingMonitor.Services
                 // Fallback на системный beep при ошибке
                 try
                 {
-                    System.Console.Beep(800, 100);
+                    System.Console.Beep(600, 350);
                 }
                 catch
                 {
