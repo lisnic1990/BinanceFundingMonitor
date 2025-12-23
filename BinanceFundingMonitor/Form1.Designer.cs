@@ -7,6 +7,7 @@
         private System.Windows.Forms.TextBox txtSymbol;
         private System.Windows.Forms.Button btnAdd;
         private System.Windows.Forms.Button btnRemove;
+        private System.Windows.Forms.Button btnSelectSound;
         private System.Windows.Forms.CheckBox chkTopMost;
         private System.Windows.Forms.CheckBox chkPlaySound;
         private System.Windows.Forms.Label lblTitle;
@@ -15,6 +16,7 @@
         private System.Windows.Forms.Panel panelTop;
         private System.Windows.Forms.Panel panelControl;
         private System.Windows.Forms.Label lblSymbol;
+        private System.Windows.Forms.ToolTip toolTip;
 
         protected override void Dispose(bool disposing)
         {
@@ -22,15 +24,18 @@
             {
                 components.Dispose();
             }
+            _soundService?.Dispose();
             base.Dispose(disposing);
         }
 
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.dgvFundingRates = new System.Windows.Forms.DataGridView();
             this.txtSymbol = new System.Windows.Forms.TextBox();
             this.btnAdd = new System.Windows.Forms.Button();
             this.btnRemove = new System.Windows.Forms.Button();
+            this.btnSelectSound = new System.Windows.Forms.Button();
             this.chkTopMost = new System.Windows.Forms.CheckBox();
             this.chkPlaySound = new System.Windows.Forms.CheckBox();
             this.lblTitle = new System.Windows.Forms.Label();
@@ -39,6 +44,7 @@
             this.panelTop = new System.Windows.Forms.Panel();
             this.panelControl = new System.Windows.Forms.Panel();
             this.lblSymbol = new System.Windows.Forms.Label();
+            this.toolTip = new System.Windows.Forms.ToolTip(this.components);
 
             ((System.ComponentModel.ISupportInitialize)(this.dgvFundingRates)).BeginInit();
             this.statusStrip.SuspendLayout();
@@ -81,6 +87,7 @@
             this.panelControl.Controls.Add(this.txtSymbol);
             this.panelControl.Controls.Add(this.btnAdd);
             this.panelControl.Controls.Add(this.btnRemove);
+            this.panelControl.Controls.Add(this.btnSelectSound);
             this.panelControl.Controls.Add(this.chkTopMost);
             this.panelControl.Controls.Add(this.chkPlaySound);
             this.panelControl.Dock = System.Windows.Forms.DockStyle.Top;
@@ -132,6 +139,21 @@
             this.btnRemove.Text = "❌ Удалить";
             this.btnRemove.UseVisualStyleBackColor = false;
             this.btnRemove.Click += new System.EventHandler(this.btnRemove_Click);
+
+            // btnSelectSound
+            this.btnSelectSound.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(76)))), ((int)(((byte)(175)))), ((int)(((byte)(80)))));
+            this.btnSelectSound.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnSelectSound.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Bold);
+            this.btnSelectSound.ForeColor = System.Drawing.Color.White;
+            this.btnSelectSound.Location = new System.Drawing.Point(780, 40);
+            this.btnSelectSound.Name = "btnSelectSound";
+            this.btnSelectSound.Size = new System.Drawing.Size(130, 25);
+            this.btnSelectSound.TabIndex = 5;
+            this.btnSelectSound.Text = "🔊 Выбрать звук";
+            this.btnSelectSound.UseVisualStyleBackColor = false;
+            this.btnSelectSound.Click += new System.EventHandler(this.btnSelectSound_Click);
+            this.btnSelectSound.MouseDown += new System.Windows.Forms.MouseEventHandler(this.btnSelectSound_MouseDown);
+            this.toolTip.SetToolTip(this.btnSelectSound, "Выберите WAV файл для звука обновления\nПравая кнопка мыши - сбросить на стандартный");
 
             // chkTopMost
             this.chkTopMost.AutoSize = true;

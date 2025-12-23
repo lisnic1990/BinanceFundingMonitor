@@ -1,10 +1,12 @@
+п»їusing BinanceFundingMonitor.Models;
+using BinanceFundingMonitor.Services;
 using System;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using BinanceFundingMonitor.Models;
-using BinanceFundingMonitor.Services;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace BinanceFundingMonitor
 {
@@ -19,7 +21,7 @@ namespace BinanceFundingMonitor
         {
             InitializeComponent();
 
-            // Инициализация сервисов в конструкторе
+            // РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ СЃРµСЂРІРёСЃРѕРІ РІ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂРµ
             _settingsService = new SettingsService();
             _soundService = new SoundService();
             _settings = new AppSettings();
@@ -31,7 +33,7 @@ namespace BinanceFundingMonitor
         }
 
         /// <summary>
-        /// Инициализация сервисов
+        /// РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ СЃРµСЂРІРёСЃРѕРІ
         /// </summary>
         private void InitializeServices()
         {
@@ -39,13 +41,33 @@ namespace BinanceFundingMonitor
         }
 
         /// <summary>
-        /// Загрузка сохраненных настроек
+        /// Р—Р°РіСЂСѓР·РєР° СЃРѕС…СЂР°РЅРµРЅРЅС‹С… РЅР°СЃС‚СЂРѕРµРє
         /// </summary>
         private void LoadSettings()
         {
             _settings = _settingsService.LoadSettings();
 
-            // Загрузка сохраненных тикеров
+            // РџСЂРёРјРµРЅРµРЅРёРµ РЅР°СЃС‚СЂРѕРµРє
+            chkTopMost.Checked = _settings.AlwaysOnTop;
+            chkPlaySound.Checked = _settings.PlaySoundOnUpdate;
+            this.TopMost = _settings.AlwaysOnTop;
+
+            // Р—Р°РіСЂСѓР·РєР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРѕРіРѕ Р·РІСѓРєР°
+            if (!string.IsNullOrEmpty(_settings.CustomSoundPath))
+            {
+                if (_soundService.SetCustomSound(_settings.CustomSoundPath))
+                {
+                    UpdateSoundButtonText();
+                }
+                else
+                {
+                    // Р•СЃР»Рё С„Р°Р№Р» РЅРµ РЅР°Р№РґРµРЅ, РѕС‡РёС‰Р°РµРј РЅР°СЃС‚СЂРѕР№РєСѓ
+                    _settings.CustomSoundPath = null;
+                    _settingsService.SaveSettings(_settings);
+                }
+            }
+
+            // Р—Р°РіСЂСѓР·РєР° СЃРѕС…СЂР°РЅРµРЅРЅС‹С… С‚РёРєРµСЂРѕРІ
             if (_settings.WatchedSymbols != null && _settings.WatchedSymbols.Count > 0)
             {
                 foreach (var symbol in _settings.WatchedSymbols)
@@ -53,15 +75,10 @@ namespace BinanceFundingMonitor
                     AddSymbolToMonitoring(symbol);
                 }
             }
-
-            // Применение настроек
-            chkTopMost.Checked = _settings.AlwaysOnTop;
-            chkPlaySound.Checked = _settings.PlaySoundOnUpdate;
-            this.TopMost = _settings.AlwaysOnTop;
         }
 
         /// <summary>
-        /// Настройка DataGridView
+        /// РќР°СЃС‚СЂРѕР№РєР° DataGridView
         /// </summary>
         private void SetupDataGridView()
         {
@@ -72,11 +89,11 @@ namespace BinanceFundingMonitor
             dgvFundingRates.MultiSelect = false;
             dgvFundingRates.ReadOnly = true;
 
-            // Колонка: Символ
+            // РљРѕР»РѕРЅРєР°: РЎРёРјРІРѕР»
             dgvFundingRates.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "Symbol",
-                HeaderText = "Символ",
+                HeaderText = "РЎРёРјРІРѕР»",
                 DataPropertyName = "Symbol",
                 Width = 120,
                 DefaultCellStyle = new DataGridViewCellStyle
@@ -86,7 +103,7 @@ namespace BinanceFundingMonitor
                 }
             });
 
-            // Колонка: Funding Rate
+            // РљРѕР»РѕРЅРєР°: Funding Rate
             dgvFundingRates.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "FundingRate",
@@ -99,11 +116,11 @@ namespace BinanceFundingMonitor
                 }
             });
 
-            // Колонка: Годовая ставка
+            // РљРѕР»РѕРЅРєР°: Р“РѕРґРѕРІР°СЏ СЃС‚Р°РІРєР°
             dgvFundingRates.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "AnnualRate",
-                HeaderText = "Годовая ставка",
+                HeaderText = "Р“РѕРґРѕРІР°СЏ СЃС‚Р°РІРєР°",
                 Width = 130,
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
@@ -111,11 +128,11 @@ namespace BinanceFundingMonitor
                 }
             });
 
-            // Колонка: Цена
+            // РљРѕР»РѕРЅРєР°: Р¦РµРЅР°
             dgvFundingRates.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "MarkPrice",
-                HeaderText = "Цена",
+                HeaderText = "Р¦РµРЅР°",
                 DataPropertyName = "MarkPrice",
                 Width = 120,
                 DefaultCellStyle = new DataGridViewCellStyle
@@ -126,11 +143,11 @@ namespace BinanceFundingMonitor
                 }
             });
 
-            // Колонка: Следующий funding
+            // РљРѕР»РѕРЅРєР°: РЎР»РµРґСѓСЋС‰РёР№ funding
             dgvFundingRates.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "NextFunding",
-                HeaderText = "След. funding через",
+                HeaderText = "РЎР»РµРґ. funding С‡РµСЂРµР·",
                 Width = 150,
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
@@ -138,11 +155,11 @@ namespace BinanceFundingMonitor
                 }
             });
 
-            // Колонка: Время обновления
+            // РљРѕР»РѕРЅРєР°: Р’СЂРµРјСЏ РѕР±РЅРѕРІР»РµРЅРёСЏ
             dgvFundingRates.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "UpdateTime",
-                HeaderText = "Обновлено",
+                HeaderText = "РћР±РЅРѕРІР»РµРЅРѕ",
                 Width = 100,
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
@@ -153,7 +170,7 @@ namespace BinanceFundingMonitor
         }
 
         /// <summary>
-        /// Обработчик получения данных от монитора
+        /// РћР±СЂР°Р±РѕС‚С‡РёРє РїРѕР»СѓС‡РµРЅРёСЏ РґР°РЅРЅС‹С… РѕС‚ РјРѕРЅРёС‚РѕСЂР°
         /// </summary>
         private void OnDataReceived(FundingRateData data)
         {
@@ -165,7 +182,7 @@ namespace BinanceFundingMonitor
 
             UpdateDataGridView(data);
 
-            // Воспроизведение звука если включено
+            // Р’РѕСЃРїСЂРѕРёР·РІРµРґРµРЅРёРµ Р·РІСѓРєР° РµСЃР»Рё РІРєР»СЋС‡РµРЅРѕ
             if (chkPlaySound.Checked)
             {
                 _soundService.PlayUpdateSound();
@@ -173,7 +190,7 @@ namespace BinanceFundingMonitor
         }
 
         /// <summary>
-        /// Обновление данных в таблице
+        /// РћР±РЅРѕРІР»РµРЅРёРµ РґР°РЅРЅС‹С… РІ С‚Р°Р±Р»РёС†Рµ
         /// </summary>
         private void UpdateDataGridView(FundingRateData data)
         {
@@ -188,7 +205,7 @@ namespace BinanceFundingMonitor
 
             if (existingRow != null)
             {
-                // Обновление существующей строки
+                // РћР±РЅРѕРІР»РµРЅРёРµ СЃСѓС‰РµСЃС‚РІСѓСЋС‰РµР№ СЃС‚СЂРѕРєРё
                 existingRow.Cells["FundingRate"].Value = data.GetFundingRatePercentage();
                 existingRow.Cells["FundingRate"].Style.ForeColor = fundingColor;
                 existingRow.Cells["AnnualRate"].Value = data.GetAnnualizedRate();
@@ -199,7 +216,7 @@ namespace BinanceFundingMonitor
             }
             else
             {
-                // Добавление новой строки
+                // Р”РѕР±Р°РІР»РµРЅРёРµ РЅРѕРІРѕР№ СЃС‚СЂРѕРєРё
                 var rowIndex = dgvFundingRates.Rows.Add();
                 var row = dgvFundingRates.Rows[rowIndex];
 
@@ -215,7 +232,7 @@ namespace BinanceFundingMonitor
         }
 
         /// <summary>
-        /// Определение цвета для funding rate
+        /// РћРїСЂРµРґРµР»РµРЅРёРµ С†РІРµС‚Р° РґР»СЏ funding rate
         /// </summary>
         private Color GetFundingRateColor(decimal fundingRate)
         {
@@ -227,7 +244,7 @@ namespace BinanceFundingMonitor
         }
 
         /// <summary>
-        /// Обработчик изменения статуса подключения
+        /// РћР±СЂР°Р±РѕС‚С‡РёРє РёР·РјРµРЅРµРЅРёСЏ СЃС‚Р°С‚СѓСЃР° РїРѕРґРєР»СЋС‡РµРЅРёСЏ
         /// </summary>
         private void OnConnectionStatusChanged(string symbol, bool isConnected)
         {
@@ -241,7 +258,7 @@ namespace BinanceFundingMonitor
         }
 
         /// <summary>
-        /// Обновление статусной строки
+        /// РћР±РЅРѕРІР»РµРЅРёРµ СЃС‚Р°С‚СѓСЃРЅРѕР№ СЃС‚СЂРѕРєРё
         /// </summary>
         private void UpdateStatusLabel()
         {
@@ -250,8 +267,8 @@ namespace BinanceFundingMonitor
             var totalSymbols = _monitor.GetMonitoredSymbolsCount();
             var connectedSymbols = _monitor.GetConnectedSymbolsCount();
 
-            toolStripStatusLabel.Text = $"Подключено: {connectedSymbols} из {totalSymbols} | " +
-                                       $"Последнее обновление: {DateTime.Now:HH:mm:ss}";
+            toolStripStatusLabel.Text = $"РџРѕРґРєР»СЋС‡РµРЅРѕ: {connectedSymbols} РёР· {totalSymbols} | " +
+                                       $"РџРѕСЃР»РµРґРЅРµРµ РѕР±РЅРѕРІР»РµРЅРёРµ: {DateTime.Now:HH:mm:ss}";
 
             if (connectedSymbols == totalSymbols && totalSymbols > 0)
             {
@@ -268,7 +285,7 @@ namespace BinanceFundingMonitor
         }
 
         /// <summary>
-        /// Добавление символа для мониторинга
+        /// Р”РѕР±Р°РІР»РµРЅРёРµ СЃРёРјРІРѕР»Р° РґР»СЏ РјРѕРЅРёС‚РѕСЂРёРЅРіР°
         /// </summary>
         private async void AddSymbolToMonitoring(string symbol)
         {
@@ -278,20 +295,20 @@ namespace BinanceFundingMonitor
 
             if (string.IsNullOrWhiteSpace(symbol))
             {
-                MessageBox.Show("Введите символ криптовалюты!", "Ошибка",
+                MessageBox.Show("Р’РІРµРґРёС‚Рµ СЃРёРјРІРѕР» РєСЂРёРїС‚РѕРІР°Р»СЋС‚С‹!", "РћС€РёР±РєР°",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // Проверка что символ еще не добавлен
+            // РџСЂРѕРІРµСЂРєР° С‡С‚Рѕ СЃРёРјРІРѕР» РµС‰Рµ РЅРµ РґРѕР±Р°РІР»РµРЅ
             if (_monitor.IsSymbolMonitored(symbol))
             {
-                MessageBox.Show($"Символ {symbol} уже отслеживается!", "Информация",
+                MessageBox.Show($"РЎРёРјРІРѕР» {symbol} СѓР¶Рµ РѕС‚СЃР»РµР¶РёРІР°РµС‚СЃСЏ!", "РРЅС„РѕСЂРјР°С†РёСЏ",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
-            // Добавление суффикса USDT если его нет
+            // Р”РѕР±Р°РІР»РµРЅРёРµ СЃСѓС„С„РёРєСЃР° USDT РµСЃР»Рё РµРіРѕ РЅРµС‚
             if (!symbol.EndsWith("USDT"))
             {
                 symbol += "USDT";
@@ -306,13 +323,13 @@ namespace BinanceFundingMonitor
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка добавления символа: {ex.Message}", "Ошибка",
+                MessageBox.Show($"РћС€РёР±РєР° РґРѕР±Р°РІР»РµРЅРёСЏ СЃРёРјРІРѕР»Р°: {ex.Message}", "РћС€РёР±РєР°",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         /// <summary>
-        /// Удаление выбранного символа
+        /// РЈРґР°Р»РµРЅРёРµ РІС‹Р±СЂР°РЅРЅРѕРіРѕ СЃРёРјРІРѕР»Р°
         /// </summary>
         private async void RemoveSelectedSymbol()
         {
@@ -320,7 +337,7 @@ namespace BinanceFundingMonitor
 
             if (dgvFundingRates.SelectedRows.Count == 0)
             {
-                MessageBox.Show("Выберите символ для удаления!", "Информация",
+                MessageBox.Show("Р’С‹Р±РµСЂРёС‚Рµ СЃРёРјРІРѕР» РґР»СЏ СѓРґР°Р»РµРЅРёСЏ!", "РРЅС„РѕСЂРјР°С†РёСЏ",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
@@ -332,8 +349,8 @@ namespace BinanceFundingMonitor
                 return;
 
             var result = MessageBox.Show(
-                $"Вы уверены что хотите удалить {symbol} из отслеживания?",
-                "Подтверждение",
+                $"Р’С‹ СѓРІРµСЂРµРЅС‹ С‡С‚Рѕ С…РѕС‚РёС‚Рµ СѓРґР°Р»РёС‚СЊ {symbol} РёР· РѕС‚СЃР»РµР¶РёРІР°РЅРёСЏ?",
+                "РџРѕРґС‚РІРµСЂР¶РґРµРЅРёРµ",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question);
 
@@ -347,7 +364,7 @@ namespace BinanceFundingMonitor
         }
 
         /// <summary>
-        /// Сохранение текущих настроек
+        /// РЎРѕС…СЂР°РЅРµРЅРёРµ С‚РµРєСѓС‰РёС… РЅР°СЃС‚СЂРѕРµРє
         /// </summary>
         private void SaveSettings()
         {
@@ -358,18 +375,111 @@ namespace BinanceFundingMonitor
                 _settings.WatchedSymbols = _monitor.GetMonitoredSymbols().ToList();
                 _settings.AlwaysOnTop = chkTopMost.Checked;
                 _settings.PlaySoundOnUpdate = chkPlaySound.Checked;
+                _settings.CustomSoundPath = _soundService.GetCurrentSoundPath();
                 _settingsService.SaveSettings(_settings);
 
-                // Логирование для отладки
-                System.Diagnostics.Debug.WriteLine($"Настройки сохранены: {_settings.WatchedSymbols.Count} символов");
+                // Р›РѕРіРёСЂРѕРІР°РЅРёРµ РґР»СЏ РѕС‚Р»Р°РґРєРё
+                System.Diagnostics.Debug.WriteLine($"РќР°СЃС‚СЂРѕР№РєРё СЃРѕС…СЂР°РЅРµРЅС‹: {_settings.WatchedSymbols.Count} СЃРёРјРІРѕР»РѕРІ");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка сохранения настроек: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"РћС€РёР±РєР° СЃРѕС…СЂР°РЅРµРЅРёСЏ РЅР°СЃС‚СЂРѕРµРє: {ex.Message}");
             }
         }
 
-        // === ОБРАБОТЧИКИ СОБЫТИЙ ===
+        /// <summary>
+        /// Р’С‹Р±РѕСЂ Р·РІСѓРєРѕРІРѕРіРѕ С„Р°Р№Р»Р°
+        /// </summary>
+        private void SelectSoundFile()
+        {
+            using (var openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Title = "Р’С‹Р±РµСЂРёС‚Рµ Р·РІСѓРєРѕРІРѕР№ С„Р°Р№Р»";
+                openFileDialog.Filter = "WAV С„Р°Р№Р»С‹ (*.wav)|*.wav|Р’СЃРµ С„Р°Р№Р»С‹ (*.*)|*.*";
+                openFileDialog.FilterIndex = 1;
+                openFileDialog.RestoreDirectory = true;
+
+                // Р•СЃР»Рё СѓР¶Рµ РІС‹Р±СЂР°РЅ С„Р°Р№Р», РїРѕРєР°Р·С‹РІР°РµРј РµРіРѕ РїР°РїРєСѓ
+                var currentPath = _soundService.GetCurrentSoundPath();
+                if (!string.IsNullOrEmpty(currentPath) && File.Exists(currentPath))
+                {
+                    openFileDialog.InitialDirectory = Path.GetDirectoryName(currentPath);
+                    openFileDialog.FileName = Path.GetFileName(currentPath);
+                }
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    if (_soundService.SetCustomSound(openFileDialog.FileName))
+                    {
+                        MessageBox.Show(
+                            $"Р—РІСѓРєРѕРІРѕР№ С„Р°Р№Р» СѓСЃРїРµС€РЅРѕ СѓСЃС‚Р°РЅРѕРІР»РµРЅ:\n{Path.GetFileName(openFileDialog.FileName)}",
+                            "РЈСЃРїРµС€РЅРѕ",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+
+                        UpdateSoundButtonText();
+                        SaveSettings();
+
+                        // РўРµСЃС‚РѕРІРѕРµ РІРѕСЃРїСЂРѕРёР·РІРµРґРµРЅРёРµ
+                        _soundService.PlayUpdateSound();
+                    }
+                    else
+                    {
+                        MessageBox.Show(
+                            "РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ Р·РІСѓРєРѕРІРѕР№ С„Р°Р№Р».\nРџСЂРѕРІРµСЂСЊС‚Рµ С‡С‚Рѕ СЌС‚Рѕ РєРѕСЂСЂРµРєС‚РЅС‹Р№ WAV С„Р°Р№Р».",
+                            "РћС€РёР±РєР°",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// РЎР±СЂРѕСЃ Р·РІСѓРєР° РЅР° СЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№
+        /// </summary>
+        private void ResetSoundToDefault()
+        {
+            var result = MessageBox.Show(
+                "Р’РµСЂРЅСѓС‚СЊ СЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ Р·РІСѓРє (СЃРёСЃС‚РµРјРЅС‹Р№ beep)?",
+                "РџРѕРґС‚РІРµСЂР¶РґРµРЅРёРµ",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (result == DialogResult.Yes)
+            {
+                _soundService.SetCustomSound(null!);
+                UpdateSoundButtonText();
+                SaveSettings();
+
+                MessageBox.Show(
+                    "РЈСЃС‚Р°РЅРѕРІР»РµРЅ СЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ Р·РІСѓРє",
+                    "Р“РѕС‚РѕРІРѕ",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+        }
+
+        /// <summary>
+        /// РћР±РЅРѕРІР»РµРЅРёРµ С‚РµРєСЃС‚Р° РєРЅРѕРїРєРё Р·РІСѓРєР°
+        /// </summary>
+        private void UpdateSoundButtonText()
+        {
+            if (_soundService.HasCustomSound())
+            {
+                var soundPath = _soundService.GetCurrentSoundPath();
+                var fileName = Path.GetFileName(soundPath);
+                btnSelectSound.Text = $"рџЋµ {fileName}";
+                toolTip.SetToolTip(btnSelectSound, $"РўРµРєСѓС‰РёР№ Р·РІСѓРє: {fileName}\nРќР°Р¶РјРёС‚Рµ РґР»СЏ РёР·РјРµРЅРµРЅРёСЏ\nРџСЂР°РІР°СЏ РєРЅРѕРїРєР° - СЃР±СЂРѕСЃРёС‚СЊ");
+            }
+            else
+            {
+                btnSelectSound.Text = "рџ”Љ Р’С‹Р±СЂР°С‚СЊ Р·РІСѓРє";
+                toolTip.SetToolTip(btnSelectSound, "Р’С‹Р±РµСЂРёС‚Рµ WAV С„Р°Р№Р» РґР»СЏ Р·РІСѓРєР° РѕР±РЅРѕРІР»РµРЅРёСЏ");
+            }
+        }
+
+        // === РћР‘Р РђР‘РћРўР§РРљР РЎРћР‘Р«РўРР™ ===
 
         private void btnAdd_Click(object? sender, EventArgs e)
         {
@@ -383,7 +493,7 @@ namespace BinanceFundingMonitor
 
         private void txtSymbol_KeyPress(object? sender, KeyPressEventArgs e)
         {
-            // Добавление по Enter
+            // Р”РѕР±Р°РІР»РµРЅРёРµ РїРѕ Enter
             if (e.KeyChar == (char)Keys.Enter)
             {
                 e.Handled = true;
@@ -394,34 +504,48 @@ namespace BinanceFundingMonitor
         private void chkTopMost_CheckedChanged(object? sender, EventArgs e)
         {
             this.TopMost = chkTopMost.Checked;
-            // SaveSettings();
+            SaveSettings();
         }
 
         private void chkPlaySound_CheckedChanged(object? sender, EventArgs e)
         {
-            // SaveSettings();
+            SaveSettings();
+        }
+
+        private void btnSelectSound_Click(object? sender, EventArgs e)
+        {
+            SelectSoundFile();
+        }
+
+        private void btnSelectSound_MouseDown(object? sender, MouseEventArgs e)
+        {
+            // РџСЂР°РІР°СЏ РєРЅРѕРїРєР° РјС‹С€Рё - СЃР±СЂРѕСЃ РЅР° СЃС‚Р°РЅРґР°СЂС‚РЅС‹Р№ Р·РІСѓРє
+            if (e.Button == MouseButtons.Right && _soundService.HasCustomSound())
+            {
+                ResetSoundToDefault();
+            }
         }
 
         private async void Form1_FormClosing(object? sender, FormClosingEventArgs e)
         {
-            // Отмена закрытия при первой попытке для корректного завершения
+            // РћС‚РјРµРЅР° Р·Р°РєСЂС‹С‚РёСЏ РїСЂРё РїРµСЂРІРѕР№ РїРѕРїС‹С‚РєРµ РґР»СЏ РєРѕСЂСЂРµРєС‚РЅРѕРіРѕ Р·Р°РІРµСЂС€РµРЅРёСЏ
             if (_monitor != null && _monitor.GetMonitoredSymbolsCount() > 0)
             {
                 e.Cancel = true;
 
-                // Отключаем элементы управления
+                // РћС‚РєР»СЋС‡Р°РµРј СЌР»РµРјРµРЅС‚С‹ СѓРїСЂР°РІР»РµРЅРёСЏ
                 btnAdd.Enabled = false;
                 btnRemove.Enabled = false;
                 txtSymbol.Enabled = false;
                 chkTopMost.Enabled = false;
                 chkPlaySound.Enabled = false;
 
-                toolStripStatusLabel.Text = "Закрытие приложения...";
+                toolStripStatusLabel.Text = "Р—Р°РєСЂС‹С‚РёРµ РїСЂРёР»РѕР¶РµРЅРёСЏ...";
 
-                // Сохраняем настройки перед закрытием
+                // РЎРѕС…СЂР°РЅСЏРµРј РЅР°СЃС‚СЂРѕР№РєРё РїРµСЂРµРґ Р·Р°РєСЂС‹С‚РёРµРј
                 SaveSettings();
 
-                // Корректное закрытие всех соединений
+                // РљРѕСЂСЂРµРєС‚РЅРѕРµ Р·Р°РєСЂС‹С‚РёРµ РІСЃРµС… СЃРѕРµРґРёРЅРµРЅРёР№
                 await Task.Run(async () =>
                 {
                     if (_monitor != null)
@@ -436,7 +560,7 @@ namespace BinanceFundingMonitor
                     }
                 });
 
-                // Теперь можно закрыть форму
+                // РўРµРїРµСЂСЊ РјРѕР¶РЅРѕ Р·Р°РєСЂС‹С‚СЊ С„РѕСЂРјСѓ
                 this.FormClosing -= Form1_FormClosing;
                 Application.Exit();
             }

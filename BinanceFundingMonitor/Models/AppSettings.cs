@@ -22,11 +22,17 @@ namespace BinanceFundingMonitor.Models
         /// </summary>
         public bool PlaySoundOnUpdate { get; set; }
 
+        /// <summary>
+        /// Путь к пользовательскому звуковому файлу (WAV)
+        /// </summary>
+        public string? CustomSoundPath { get; set; }
+
         public AppSettings()
         {
             WatchedSymbols = new List<string>();
             AlwaysOnTop = false;
             PlaySoundOnUpdate = false;
+            CustomSoundPath = null;
         }
     }
 }
