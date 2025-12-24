@@ -10,27 +10,47 @@ namespace BinanceFundingMonitor.Services
     public class SoundService
     {
         private SoundPlayer? _soundPlayer;
+        private SoundPlayer? _fundingSoundPlayer;
         private string? _currentSoundPath;
+        private string? _currentFundingSoundPath;
 
         public SoundService()
         {
             _soundPlayer = null;
+            _fundingSoundPlayer = null;
             _currentSoundPath = null;
+            _currentFundingSoundPath = null;
         }
 
         /// <summary>
-        /// Установка пользовательского звукового файла
+        /// Установка пользовательского звукового файла для обновлений
         /// </summary>
         public bool SetCustomSound(string soundFilePath)
+        {
+            return SetSound(ref _soundPlayer, ref _currentSoundPath, soundFilePath);
+        }
+
+        /// <summary>
+        /// Установка пользовательского звукового файла для funding уведомлений
+        /// </summary>
+        public bool SetFundingSound(string soundFilePath)
+        {
+            return SetSound(ref _fundingSoundPlayer, ref _currentFundingSoundPath, soundFilePath);
+        }
+
+        /// <summary>
+        /// Общий метод установки звука
+        /// </summary>
+        private bool SetSound(ref SoundPlayer? player, ref string? path, string soundFilePath)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(soundFilePath))
                 {
                     // Очистка пользовательского звука
-                    _soundPlayer?.Dispose();
-                    _soundPlayer = null;
-                    _currentSoundPath = null;
+                    player?.Dispose();
+                    player = null;
+                    path = null;
                     return true;
                 }
 
@@ -49,28 +69,28 @@ namespace BinanceFundingMonitor.Services
                 }
 
                 // Создание нового SoundPlayer
-                _soundPlayer?.Dispose();
-                _soundPlayer = new SoundPlayer(soundFilePath);
+                player?.Dispose();
+                player = new SoundPlayer(soundFilePath);
 
                 // Предзагрузка звука для быстрого воспроизведения
-                _soundPlayer.Load();
+                player.Load();
 
-                _currentSoundPath = soundFilePath;
+                path = soundFilePath;
                 System.Diagnostics.Debug.WriteLine($"Установлен пользовательский звук: {soundFilePath}");
                 return true;
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Ошибка установки звука: {ex.Message}");
-                _soundPlayer?.Dispose();
-                _soundPlayer = null;
-                _currentSoundPath = null;
+                player?.Dispose();
+                player = null;
+                path = null;
                 return false;
             }
         }
 
         /// <summary>
-        /// Получение пути к текущему звуковому файлу
+        /// Получение пути к текущему звуковому файлу обновлений
         /// </summary>
         public string? GetCurrentSoundPath()
         {
@@ -78,7 +98,15 @@ namespace BinanceFundingMonitor.Services
         }
 
         /// <summary>
-        /// Проверка установлен ли пользовательский звук
+        /// Получение пути к текущему funding звуковому файлу
+        /// </summary>
+        public string? GetFundingSoundPath()
+        {
+            return _currentFundingSoundPath;
+        }
+
+        /// <summary>
+        /// Проверка установлен ли пользовательский звук обновлений
         /// </summary>
         public bool HasCustomSound()
         {
@@ -86,21 +114,45 @@ namespace BinanceFundingMonitor.Services
         }
 
         /// <summary>
+        /// Проверка установлен ли funding звук
+        /// </summary>
+        public bool HasFundingSound()
+        {
+            return _fundingSoundPlayer != null && !string.IsNullOrEmpty(_currentFundingSoundPath);
+        }
+
+        /// <summary>
         /// Воспроизведение звука при обновлении данных
         /// </summary>
         public void PlayUpdateSound()
         {
+            PlaySound(_soundPlayer, 800, 100);
+        }
+
+        /// <summary>
+        /// Воспроизведение звука funding уведомления
+        /// </summary>
+        public void PlayFundingSound()
+        {
+            PlaySound(_fundingSoundPlayer, 1200, 300);
+        }
+
+        /// <summary>
+        /// Общий метод воспроизведения звука
+        /// </summary>
+        private void PlaySound(SoundPlayer? player, int beepFrequency, int beepDuration)
+        {
             try
             {
-                if (_soundPlayer != null)
+                if (player != null)
                 {
                     // Воспроизведение пользовательского звука
-                    _soundPlayer.Play();
+                    player.Play();
                 }
                 else
                 {
                     // Воспроизведение системного beep
-                    System.Console.Beep(600, 350);
+                    System.Console.Beep(beepFrequency, beepDuration);
                 }
             }
             catch (Exception ex)
@@ -110,7 +162,7 @@ namespace BinanceFundingMonitor.Services
                 // Fallback на системный beep при ошибке
                 try
                 {
-                    System.Console.Beep(600, 350);
+                    System.Console.Beep(beepFrequency, beepDuration);
                 }
                 catch
                 {
@@ -157,6 +209,10 @@ namespace BinanceFundingMonitor.Services
             _soundPlayer?.Dispose();
             _soundPlayer = null;
             _currentSoundPath = null;
+
+            _fundingSoundPlayer?.Dispose();
+            _fundingSoundPlayer = null;
+            _currentFundingSoundPath = null;
         }
     }
 }
