@@ -12,6 +12,7 @@ namespace BinanceFundingMonitor.Services
     public class FundingRateMonitor : IDisposable
     {
         private readonly Dictionary<string, BinanceWebSocketClient> _clients;
+        private readonly Dictionary<string, FundingRateData> _dataCache; // Кэш данных с историей
         private readonly Action<FundingRateData> _onDataReceived;
         private readonly Action<string, bool> _onConnectionStatusChanged;
 
@@ -20,8 +21,37 @@ namespace BinanceFundingMonitor.Services
             Action<string, bool> onConnectionStatusChanged)
         {
             _clients = new Dictionary<string, BinanceWebSocketClient>();
+            _dataCache = new Dictionary<string, FundingRateData>(); // Инициализация кэша
             _onDataReceived = onDataReceived;
             _onConnectionStatusChanged = onConnectionStatusChanged;
+        }
+
+        /// <summary>
+        /// Обработка полученных данных и обновление кэша
+        /// </summary>
+        private void OnDataReceived(FundingRateData newData)
+        {
+            // Получаем или создаем закэшированный объект
+            if (!_dataCache.TryGetValue(newData.Symbol, out var cachedData))
+            {
+                // Первое получение данных для этого символа - создаем новый объект
+                cachedData = newData;
+                _dataCache[newData.Symbol] = cachedData;
+            }
+            else
+            {
+                // Обновляем существующий объект, сохраняя историю цен
+                cachedData.FundingRate = newData.FundingRate;
+                cachedData.NextFundingTime = newData.NextFundingTime;
+                cachedData.MarkPrice = newData.MarkPrice;
+                cachedData.Timestamp = newData.Timestamp;
+            }
+
+            // Добавляем текущую цену в историю
+            cachedData.AddPricePoint(cachedData.MarkPrice, cachedData.Timestamp);
+
+            // Передаем обновленный объект с историей
+            _onDataReceived?.Invoke(cachedData);
         }
 
         /// <summary>
@@ -35,7 +65,7 @@ namespace BinanceFundingMonitor.Services
                 return;
 
             var client = new BinanceWebSocketClient(symbol);
-            client.OnFundingRateUpdate += _onDataReceived;
+            client.OnFundingRateUpdate += OnDataReceived; // Используем локальный обработчик
             client.OnConnectionStatusChanged += (isConnected) =>
                 _onConnectionStatusChanged?.Invoke(symbol, isConnected);
 
@@ -55,6 +85,7 @@ namespace BinanceFundingMonitor.Services
                 await client.DisconnectAsync();
                 client.Dispose();
                 _clients.Remove(symbol);
+                _dataCache.Remove(symbol); // Удаляем из кэша
             }
         }
 
@@ -90,6 +121,15 @@ namespace BinanceFundingMonitor.Services
             return _clients.Values.Count(c => c.IsConnected);
         }
 
+        /// <summary>
+        /// Получение закэшированных данных для символа (с историей)
+        /// </summary>
+        public FundingRateData? GetCachedData(string symbol)
+        {
+            _dataCache.TryGetValue(symbol.ToUpper(), out var data);
+            return data;
+        }
+
         public void Dispose()
         {
             foreach (var client in _clients.Values)
@@ -98,6 +138,7 @@ namespace BinanceFundingMonitor.Services
                 client.Dispose();
             }
             _clients.Clear();
+            _dataCache.Clear(); // Очищаем кэш
         }
     }
 }

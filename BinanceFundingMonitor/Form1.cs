@@ -1,5 +1,4 @@
-﻿// Form1.cs - ПОЛНЫЙ ФАЙЛ
-using System;
+﻿using System;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -207,9 +206,7 @@ namespace BinanceFundingMonitor
                 return;
             }
 
-            // Добавляем текущую цену в историю
-            data.AddPricePoint(data.MarkPrice, data.Timestamp);
-
+            // История цен уже обновлена в FundingRateMonitor
             // Проверка funding момента
             CheckFundingMoment(data);
 
